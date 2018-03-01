@@ -7,46 +7,52 @@ from bluesky.callbacks.best_effort import BestEffortCallback
 import sys, time
 
 
-#Set up various devices to be used
+#Set up various devices to be usedi and refresh their values during venting
 
-#Detector Motor
-SC1_detMotor = EpicsMotor('CXI:DS1:MMS:06', name='SC1_detMotor')
+def configureDevices():
 
-#Gate Valves
-SC1_gate = GateValve('CXI:SC1:VGC:01', name='SC1_gateValve')
-DS1_gate = GateValve('CXI:SC1:VGC:02', name='DS1_gateValve')
+    #Detector Motor
+    SC1_detMotor = EpicsMotor('CXI:DS1:MMS:06', name='SC1_detMotor')
 
-#DS1 Pin
-DS1_pin = EpicsSignal('CXI:SC1:VGC:02:PININ_DI', name = 'DS1_pin')
+    #Gate Valves
+    SC1_gate = GateValve('CXI:SC1:VGC:01', name='SC1_gateValve')
+    DS1_gate = GateValve('CXI:SC1:VGC:02', name='DS1_gateValve')
 
-#Turbos
-turbo1 = Turbo('CXI:SC1:PTM:01', name='turbo1')
-turbo2 = Turbo('CXI:SC1:PTM:02', name='turbo2')
-turbo3 = Turbo('CXI:SC1:PTM:03', name='turbo3')
+    #DS1 Pin
+    DS1_pin = EpicsSignal('CXI:SC1:VGC:02:PININ_DI', name = 'DS1_pin')
 
-#Main Turbo Valve
-mainTurboValve = GateValve('CXI:SC1:VGC:03', name='mainTurboValve')
+    #Turbos
+    turbo1 = Turbo('CXI:SC1:PTM:01', name='turbo1')
+    turbo2 = Turbo('CXI:SC1:PTM:02', name='turbo2')
+    turbo3 = Turbo('CXI:SC1:PTM:03', name='turbo3')
 
-#Foreline Valves
-foreline1 = GateValve('CXI:SC1:VIC:04', name='foreline1')
-foreline2 = GateValve('CXI:SC1:VIC:05', name='foreline2')
+    #Main Turbo Valve
+    mainTurboValve = GateValve('CXI:SC1:VGC:03', name='mainTurboValve')
 
-#Vent Valve
-ventValve1 = GateValve('CXI:SC1:VCC:01', name='ventValve1')
-ventValve2 = GateValve('CXI:SC1:VCC:02', name='ventValve2')
+    #Foreline Valves
+    foreline1 = GateValve('CXI:SC1:VIC:04', name='foreline1')
+    foreline2 = GateValve('CXI:SC1:VIC:05', name='foreline2')
 
-#Cold Cathodes
-#No Device exists yet, need to figure out how to read a PV
+    #Vent Valve
+    ventValve1 = GateValve('CXI:SC1:VCC:01', name='ventValve1')
+    ventValve2 = GateValve('CXI:SC1:VCC:02', name='ventValve2')
 
-coldCathode = EpicsSignal('CXI:SC1:GCC:01:ENBL_SW', name='coldCathode') 
+    #Cold Cathodes
+    coldCathode = EpicsSignal('CXI:SC1:GCC:01:ENBL_SW', name='coldCathode') 
 
+    #Sample Chamber Pressure
 
-#Step 1 - Check if detector is moved back, pin is removed, and gate Valves are closed
+    chamberPressure = EpicsSignal('CXI:SC1:GPI:01:PMON', name='chamberPressure')
+    cPressTorr = chamberPressure.value
+    cPressmTorr = (chamberPressure.value * 1000)
+
+#Set up RunEngine
 
 RE = RunEngine({})
 bec = BestEffortCallback()
 RE.subscribe(bec)
 
+#Step 1 - Check if detector is moved back, pin is removed, and gate Valves are closed
 
 def moveDetBack():
     #Check current motor position
@@ -67,7 +73,7 @@ def checkValvesAndPin():
 
     else:
         print("Will close SC1 gate valve")
-        SC1_gate.close()
+        yield from SC1_gate.close()
         print("SC1 gate valve is closed")
 
     if DS1_pin.value == 1:
@@ -79,7 +85,7 @@ def checkValvesAndPin():
  
     else:
         print("Will close DSC gate valve")
-        DS1_gate.close()
+        yield from DS1_gate.close()
         print("DSC gate valve is closed")
 
     if mainTurboValve.command.value == 0:
@@ -87,7 +93,7 @@ def checkValvesAndPin():
 
     else:
         print("Will close main turbo gate valve")
-        mainTurboValve.closed()
+        yield from mainTurboValve.closed()
         print("Main turbo valve closed")
 
     if foreline1.command.value == 0:
@@ -95,7 +101,7 @@ def checkValvesAndPin():
     
     else:
         print("Will close foreline valve 1")
-        foreline1.closed()
+        yield from foreline1.closed()
         print("Foreline valve 1 is closed")
 
 
@@ -104,22 +110,22 @@ def checkValvesAndPin():
 
     else:
         print("Will close foreline valve 2")
-        foreline1.closed()
+        yield from foreline1.closed()
         print("Foreline valve 2 is closed")
 
 
 def turnOffAllTurbos():
 
-    turbo1.turnOff()
+    yield from turbo1.turnOff()
     print("Turbo1 turned off")
 
-    turbo2.turnOff()
+    yield from turbo2.turnOff()
     print("Turbo2 turned off")
  
-    turbo3.turnOff()
+    yield from turbo3.turnOff()
     print("Turbo3 turned off")
 
-    coldCathode.put(value=0)
+    yield from coldCathode.put(value=0)
     print("Cold Cathode turned off")
 
 
@@ -131,12 +137,12 @@ def ventSC1():
 
     for _ in range(2):
 
-        ventValve1.open()
+        yield from ventValve1.open()
         time.sleep(0.5)
-        ventValve1.close()
-        ventValve2.open()
+        yield from ventValve1.close()
+        yield from ventValve2.open()
         time.sleep(0.5)
-        ventValve2.close()
+        yield from ventValve2.close()
         time.sleep(30)
 
     #Round 2
@@ -144,12 +150,12 @@ def ventSC1():
 
     for _ in range(5):
 
-        ventValve1.open()
+        yield from ventValve1.open()
         time.sleep(1)
-        ventValve1.close()
-        ventValve2.open()
+        yield from ventValve1.close()
+        yield from ventValve2.open()
         time.sleep(1)
-        ventValve2.close()
+        yield from ventValve2.close()
         time.sleep(30)       
  
     #Round 3
@@ -157,11 +163,11 @@ def ventSC1():
 
     for _ in range(20):
 
-        ventValve1.open()
-        ventValve2.open()
+        yield from ventValve1.open()
+        yield from ventValve2.open()
         time.sleep(1)
-        ventValve1.close()
-        ventValve2.close()
+        yield from ventValve1.close()
+        yield from ventValve2.close()
         time.sleep(5)
 
      #Round 4
@@ -169,11 +175,11 @@ def ventSC1():
 
      for _ in range(20):
 
-         ventValve1.open()
-         ventValve2.open()
+         yield from ventValve1.open()
+         yield from ventValve2.open()
          time.sleep(2)
-         ventValve1.close()
-         ventValve2.close()
+         yield from ventValve1.close()
+         yield from ventValve2.close()
          time.sleep(2)
 
     #Round 5
@@ -181,21 +187,57 @@ def ventSC1():
 
     for _ in range(20):
 
-        ventValve1.open()
-        ventValve2.open()
+        yield from ventValve1.open()
+        yield from ventValve2.open()
         time.sleep(1)
-        ventValve1.close()
-        ventValve2.close()
+        yield from ventValve1.close()
+        yield from ventValve2.close()
         time.sleep(1)
 
     print("Venting is complete")
 
-    ventValve1.open()
-    ventValve2.open()
+def scrubCycle():
 
+    print("Scrubbing cycle will now commence")
+    print("The current chamber pressure is %s mTorr") % (cPressmTorr)
 
+    for _ in range(5):
+        while cPressmTorr < 500000:
+            yield from ventValve1.open()
+            yield from ventValve2.open()
+            time.sleep(20)
+            print("The current chamber pressure is %s mTorr") % (cPressmTorr)
 
+        yield from ventValve1.close()
+        yield from ventValve2.close()
+
+        print("Opening the foreline valves")
+
+        yield from foreline1.open()
+        yield from foreline2.open()
+
+        while cPressmTorr > 500:
+            print("The chamber pressure has not reached 500 mTorr")
+            print("The current chamber pressure is %s mTorr") % (cPressmTorr)
+            time.sleep(30)
+
+        print("Closing the fore line valves")
+        yield from foreline1.close()
+        yield from foreline2.close()
+
+    print("Scrubbing complete - leaving chamber under rough vac for the night")
+    yield from foreline1.open()
+    yield from foreline2.open()
+
+RE(configureDevices())
 RE(moveDetBack())
+RE(configureDevices())
 RE(checkValvesAndPin())
+RE(configureDevices())
 RE(turnOffAllTurbos())
+RE(configureDevices())
+time.sleep(300)
+RE(configureDevices())
 RE(ventSC1())
+RE(configureDevices())
+RE(scrubCycle())
