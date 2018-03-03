@@ -87,7 +87,7 @@ def closeForelines(forelineValves):
             yield from mv(valve.close())
             print("%s valve is now closed") % (valve)
 
-    yield from coldCathode.put(value=0) 
+    yield from abs_set(coldCathode.put(value=0)) 
     print("Cold cathode is turned off")
 
 #Step 4 - Turn off all the turbos
@@ -120,6 +120,7 @@ def ventOnVentOff (numberCycles, openTime, closeTime):
         yield from mv(ventValve1.close(), ventValve.close())
         yield from sleep(closeTime)
 
+#Scrub Cycle
 
 def scrubCycle(numberOfCycles, ventValves, forelineValves):
 
@@ -180,5 +181,6 @@ if __name__ == "__main__":
     print("5th round starting - 20 cycles, both vent on-time 1 sec, 1 sec off-time")
     RE(ventOnVentOff(20,1,1))
 
+    #Scrub cycle
     print("Scrubbing cycle started")
     RE(scrubCycle(5, ventValves, forelineValves))
