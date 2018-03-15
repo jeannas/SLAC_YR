@@ -31,12 +31,12 @@ _stands = ['standDG2', 'stand1MS', 'standDG3', 'standDG4']
 
 _stand_detectors = {
          'stand1MS': {
-                      'Ax': {'kb1': 84.3998, 'kb2': 64.18,    'pv': 'CXI:1MS:MMS:04'},
-                      'Ay': {'kb1': 81.5299, 'kb2': 55.2699,  'pv': 'CXI:1MS:MMS:05'},
-#                      'Az': {'kb1': 9.3998,  'kb2': 9.39978,  'pv': 'CXI:1MS:MMS:06'},
-                      'By': {'kb1': 52.281,  'kb2': 31.4952,  'pv': 'CXI:1MS:MMS:01'},
-                      'Cx': {'kb1': 54.9002, 'kb2': 37.3503,  'pv': 'CXI:1MS:MMS:02'},
-                      'Cy': {'kb1': 52.3008, 'kb2': 31.415,   'pv': 'CXI:1MS:MMS:03'},
+                      'Ax': {'kb1': 84.3998, 'kb2': 64.18, 'straight':0,    'pv': 'CXI:1MS:MMS:04'},
+                      'Ay': {'kb1': 81.5299, 'kb2': 55.2699, 'straight':0,  'pv': 'CXI:1MS:MMS:05'},
+#                      'Az': {'kb1': 9.3998,  'kb2': 9.39978, 'straight':0,  'pv': 'CXI:1MS:MMS:06'},
+                      'By': {'kb1': 52.281,  'kb2': 31.4952, 'straight':0,  'pv': 'CXI:1MS:MMS:01'},
+                      'Cx': {'kb1': 54.9002, 'kb2': 37.3503, 'straight':0,  'pv': 'CXI:1MS:MMS:02'},
+                      'Cy': {'kb1': 52.3008, 'kb2': 31.415, 'straight':0,   'pv': 'CXI:1MS:MMS:03'},
                      },
          'standDG2': {
                       'Ax': {'kb1': 36.0798, 'kb2': 20.33,    'pv': 'CXI:DG2:MMS:14'},
@@ -79,6 +79,7 @@ try:
     pvArray = []
     kb1Positions = []
     kb2Positions = []
+    zeroPositions = [0,0,0,0,0]
 
     for key, value in standDictionary.items():
         nameArray.append(key)
@@ -109,12 +110,12 @@ except KeyError:
 RE = RunEngine({})
 
 
+def setConfig(motorArray, config, nSteps, tSteps, tWait):
 
-def straightConfig(motorArray, nSteps, tSteps, tWait):
-    
     """
 
-    Straight Configuration is all motors return to position 0
+    The user will select desired configuration which will move the motors
+    to the positions defined in the _stand_detector dictionary above
     
     Parameters
     ----------
@@ -126,85 +127,19 @@ def straightConfig(motorArray, nSteps, tSteps, tWait):
         The number of total steps that the motors should take to reach
         position 0. All motors will reach 0 simultaneously
 
-    tSteps: Int
-        This number will determine the velocity. The total distance/step
-        is calculated in the function. This parameter will determine
-        how quickly each step should be taken"
+    config: [Float]
+        The user will select which configuration. The arrays with the 
+        kb1 and kb2 positions for each respective motor are initialized
+        at the start
 
-    tWait: Int:
-        This number will tell the runEngine how long to wait between
-        conducting each step.
-
-    """
-
-    #Variables
-    startPosArray = []
-    distTravel = []
-    endPos = 0
-    tweekVals = []
-    velocityVals = []
-
-    #Figure out position of motors first
-    for motor in motorArray:
-        startPos = motor.user_readback.value
-        startPosArray.append(startPos)
-    
-    #Calculate distance to travel for each motor, and set velocity based on distance so motors will reach at position 0 at same time
-    for val in startPosArray:
-        distance = endPos - val
-        distTravel.append(distance)
-
-    for dist in distTravel:
-        tweek = dist/nSteps
-        tweekVals.append(tweek)
-   
-    for tweek in tweekVals:
-        velocity = tweek/tSteps
-        velocityVals.append(velocity)
-
-    for motor in motorArray:
-        for veloc in velocityVals:
-            yield from abs_set(motor.velocity.put(value=veloc))
-
-
-    print("Moving all motors to position Zero")
-
-    #All motors will move in calculated steps & speeds to 0, while also reaching 0 simultaneously with tSteps being the time between each step
-
-    for _ in nSteps:
-        yield from mv(motorArray[0],tweekVals[0],motorArray[1],tweekVals[1],motorArray[2],tweekVals[2], motorArray[3],tweekVals[3], motorArray[4],tweekVals[4])
-
-        yield from sleep(tWait)
-    
-
-
-def kb1Config(motorArray,kb1Pos,nSteps,tSteps,tWait):
-
-
-    """
-
-    KB1 configuration requires the motors to be moved to the positions defined
-    in the _stand_detector dictionary above
-    
-    Parameters
-    ----------
-
-    motorArray: [EpicsMotors]
-        The instantiated motor objects that will be moved
-
-    nSteps: Int
-        The number of total steps that the motors should take to reach
-        position 0. All motors will reach 0 simultaneously
-
-    kb1Pos: [Float]
-        This variable is instantiated with the motors since these values
-        come from the dictionary. The values within the array represent
-        the end location of each motor in the KB1 configuration.
+        kb1 Configuration = kb1Positions
+        kb2 Configurations = kb2Positions
+        straight Configuration = zeroPositions
 
     tSteps: Int
         This number will determine the velocity. The total distance/step
         is calculated in the function. This parameter will determine
-        how quickly each step should be taken"
+        how quickly each step should be taken
 
     tWait: Int:
         This number will tell the runEngine how long to wait between
@@ -226,7 +161,7 @@ def kb1Config(motorArray,kb1Pos,nSteps,tSteps,tWait):
 
     #Calculate distance to travel for each motor, and set velocity based on distance so motors will reach at position 0 at same time
     for start in startPosArray:
-        for final in kb1Pos:
+        for final in config:
             distance = final - start
             distTravel.append(distance)
 
@@ -253,80 +188,8 @@ def kb1Config(motorArray,kb1Pos,nSteps,tSteps,tWait):
         yield from sleep(tWait)
 
 
-def kb2Config(motorArray,kb2Pos,nSteps, tSteps, tWait):
 
-    """
-
-    KB2 configuration requires the motors to be moved to the positions defined
-    in the _stand_detector dictionary above
-    
-    Parameters
-    ----------
-
-    motorArray: [EpicsMotors]
-        The instantiated motor objects that will be moved
-
-    nSteps: Int
-        The number of total steps that the motors should take to reach
-        position 0. All motors will reach 0 simultaneously
-
-    kb1Pos: [Float]
-        This variable is instantiated with the motors since these values
-        come from the dictionary. The values within the array represent
-        the end location of each motor in the KB2 configuration.
-
-    tSteps: Int
-        This number will determine the velocity. The total distance/step
-        is calculated in the function. This parameter will determine
-        how quickly each step should be taken"
-
-    tWait: Int:
-        This number will tell the runEngine how long to wait between
-        conducting each step.
-
-    """
-
-    startPosArray = []
-        #Variables
-    startPosArray = []
-    distTravel = []
-    tweekVals = []
-    velocityVals = []
-
-    #Figure out position of motors first
-    for motor in motorArray:
-        startPos = motor.user_readback.value
-        startPosArray.append(startPos)
-
-    #Calculate distance to travel for each motor, and set velocity based on distance so motors will reach at position 0 at same time
-    for start in startPosArray:
-        for final in kb2Pos:
-            distance = final - start
-            distTravel.append(distance)
-
-    for dist in distTravel:
-        tweek = dist/nSteps
-        tweekVals.append(tweek)
-
-    for tweek in tweekVals:
-        velocity = tweek/tSteps
-        velocityVals.append(velocity)
-
-    for motor in motorArray:
-        for veloc in velocityVals:
-            yield from abs_set(motor.velocity.put(value=veloc))
-
-
-    print("Moving all motors to position Zero")
-
-    #All motors will move in calculated steps & speeds to 0, while also reaching 0 simultaneously with tSteps being the time between each step
-
-    for _ in nSteps:
-        yield from mv(motorArray[0],tweekVals[0],motorArray[1],tweekVals[1],motorArray[2],tweekVals[2], motorArray[3],tweekVals[3], motorArray[4],tweekVals[4])
-
-        yield from sleep(tWait)
 
 
 #if __name__ == '__main__':
 
- #   connectStandMotors()    
