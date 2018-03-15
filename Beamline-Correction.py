@@ -178,7 +178,7 @@ def setConfig(motorArray, config, nSteps, tSteps, tWait):
             yield from abs_set(motor.velocity.put(value=veloc))
 
 
-    print("Moving all motors to position Zero")
+    print("Moving all motors to selected Configuration")
 
     #All motors will move in calculated steps & speeds to 0, while also reaching 0 simultaneously with tSteps being the time between each step
 
