@@ -39,28 +39,28 @@ _stand_detectors = {
                       'Cy': {'kb1': 52.3008, 'kb2': 31.415, 'straight':0,   'pv': 'CXI:1MS:MMS:03'},
                      },
          'standDG2': {
-                      'Ax': {'kb1': 36.0798, 'kb2': 20.33,    'pv': 'CXI:DG2:MMS:14'},
-                      'Ay': {'kb1': 34.41,   'kb2': 16.58,    'pv': 'CXI:DG2:MMS:15'},
-#                      'Az': {'kb1': 0.2002,  'kb2': 0.20021,  'pv': 'CXI:DG2:MMS:16'},
-                      'By': {'kb1': 39.88,   'kb2': 21.018,   'pv': 'CXI:DG2:MMS:11'},
-                      'Cx': {'kb1': 41.8487, 'kb2': 25.662,   'pv': 'CXI:DG2:MMS:12'},
-                      'Cy': {'kb1': 39.9501, 'kb2': 20.988,   'pv': 'CXI:DG2:MMS:13'},
+                      'Ax': {'kb1': 36.0798, 'kb2': 20.33, 'straight':0,    'pv': 'CXI:DG2:MMS:14'},
+                      'Ay': {'kb1': 34.41,   'kb2': 16.58, 'straight':0,   'pv': 'CXI:DG2:MMS:15'},
+#                      'Az': {'kb1': 0.2002,  'kb2': 0.20021, 'straight':0,  'pv': 'CXI:DG2:MMS:16'},
+                      'By': {'kb1': 39.88,   'kb2': 21.018, 'straight':0,   'pv': 'CXI:DG2:MMS:11'},
+                      'Cx': {'kb1': 41.8487, 'kb2': 25.662, 'straight':0,   'pv': 'CXI:DG2:MMS:12'},
+                      'Cy': {'kb1': 39.9501, 'kb2': 20.988, 'straight':0,   'pv': 'CXI:DG2:MMS:13'},
                      },
          'standDG3': {
-                      'Ax': {'kb1': 90.7329, 'kb2': 70.0217,  'pv': 'CXI:DG3:MMS:09'},
-                      'Ay': {'kb1': 88.406,  'kb2': 60.16,    'pv': 'CXI:DG3:MMS:10'},
-#                      'Az': {'kb1': -0.0034, 'kb2': -0.00323, 'pv': 'CXI:DG3:MMS:11'},
-                      'By': {'kb1': 91.088,  'kb2': 61.9193,  'pv': 'CXI:DG3:MMS:06'},
-                      'Cx': {'kb1': 91.8417, 'kb2': 70.53,    'pv': 'CXI:DG3:MMS:07'},
-                      'Cy': {'kb1': 95.2873, 'kb2': 65.8574,  'pv': 'CXI:DG3:MMS:08'},
+                      'Ax': {'kb1': 90.7329, 'kb2': 70.0217, 'straight':0,  'pv': 'CXI:DG3:MMS:09'},
+                      'Ay': {'kb1': 88.406,  'kb2': 60.16, 'straight':0,    'pv': 'CXI:DG3:MMS:10'},
+#                      'Az': {'kb1': -0.0034, 'kb2': -0.00323, 'straight':0, 'pv': 'CXI:DG3:MMS:11'},
+                      'By': {'kb1': 91.088,  'kb2': 61.9193, 'straight':0,  'pv': 'CXI:DG3:MMS:06'},
+                      'Cx': {'kb1': 91.8417, 'kb2': 70.53, 'straight':0,    'pv': 'CXI:DG3:MMS:07'},
+                      'Cy': {'kb1': 95.2873, 'kb2': 65.8574, 'straight':0,  'pv': 'CXI:DG3:MMS:08'},
                      },
          'standDG4': {
-                      'Ax': {'kb1': 107.911, 'kb2': 85.4314,  'pv': 'CXI:DG4:MMS:09'},
-                     'Ay': {'kb1': 107.333, 'kb2': 76.101,   'pv': 'CXI:DG4:MMS:10'},
-#                      'Az': {'kb1': 3.033,   'kb2': 3.03418,  'pv': 'CXI:DG4:MMS:11'},
-                      'By': {'kb1': 112.969, 'kb2': 80.77,    'pv': 'CXI:DG4:MMS:06'},
-                      'Cx': {'kb1': 113.263, 'kb2': 90.2427,  'pv': 'CXI:DG4:MMS:07'},
-                      'Cy': {'kb1': 112.63,  'kb2': 80.35,    'pv': 'CXI:DG4:MMS:08'},
+                      'Ax': {'kb1': 107.911, 'kb2': 85.4314, 'straight':0,  'pv': 'CXI:DG4:MMS:09'},
+                     'Ay': {'kb1': 107.333, 'kb2': 76.101, 'straight':0,   'pv': 'CXI:DG4:MMS:10'},
+#                      'Az': {'kb1': 3.033,   'kb2': 3.03418, 'straight':0,  'pv': 'CXI:DG4:MMS:11'},
+                      'By': {'kb1': 112.969, 'kb2': 80.77, 'straight':0,    'pv': 'CXI:DG4:MMS:06'},
+                      'Cx': {'kb1': 113.263, 'kb2': 90.2427, 'straight':0,  'pv': 'CXI:DG4:MMS:07'},
+                      'Cy': {'kb1': 112.63,  'kb2': 80.35, 'straight':0,    'pv': 'CXI:DG4:MMS:08'},
                      },
           }
 
@@ -79,16 +79,18 @@ try:
     pvArray = []
     kb1Positions = []
     kb2Positions = []
-    zeroPositions = [0,0,0,0,0]
+    zeroPositions = []
 
     for key, value in standDictionary.items():
         nameArray.append(key)
         pv = value['pv']
         kb1 = value['kb1']
         kb2 = value['kb2']
+        zero = value['straight']
         pvArray.append(pv)
         kb1Positions.append(kb1)
         kb2Positions.append(kb2)
+        zeroPositions.append(zero)
 
     motor_Ax = epicsmotor.EpicsMotor(pvArray[0], name = 'motor_Ax')
     motor_Ay = epicsmotor.EpicsMotor(pvArray[1], name = 'motor_Ay')
@@ -97,7 +99,6 @@ try:
     motor_Cy = epicsmotor.EpicsMotor(pvArray[4], name = 'motor_Cy')
 
     motorArray = [motor_Ax, motor_Ay, motor_By, motor_Cx, motor_Cy]
-    print(motorArray)
 
 
 except IndexError:
