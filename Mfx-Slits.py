@@ -33,33 +33,31 @@ slitArray = [dg1Slits, dg2SlitsUS, dg2SlitsDS]
 def changeSlits(slitArray, msSlit, mirrPos, slitVal, msVal):
 
     """
-
     The user will select the position of the mirror, and will match that position
     with the slit width values defined in the above dictionary
-
+    
     Parameters
     ----------
 
     slitArray: [Slits]
         The array is defined above. The instantiated slits to be moved
-
+    
     msSlit: Slit
         The DG2 Midstream slit requires a different in-value and was separated
         from the slitArray
-
+    
     mirrPos: 0 or 1
         This value will determine the position of the mirror. 0 indicates the mirror
         will be in the 'OUT' position and 1 will place the mirror in the 'IN'
         position
-
+    
     slitVal: inVal or outVal
         Depending on the position of the mirror, the values of the slits will also
         be in either an IN or OUT position
-
+    
     msVal: inValMS, outValMS
         Corresponds directly to the values chosen for the mirror position and the 
         slitVal variable. 
-
     """
 
     yield from abs_set(refLaser.put(value=mirrPos))
@@ -67,7 +65,7 @@ def changeSlits(slitArray, msSlit, mirrPos, slitVal, msVal):
     for slit in slitArray:
         if slit.xcenter.readback.value < 0.1 or slit.xcenter.readback.value > -0.1:
             
-            yield from mv(slit.xwidth.setpoint.put(value=slitVal))
+            yield from mv(slit.xwidth.setpoint, slitVal)
 
             if slit.xcenter.readback.value > 0.1 or slit.xcenter.readback.value < -0.1:
                 raise ValueError('The xCenter of the slits %s is not equal to 0 AFTER changing the width. It is %s') % (slit, str(slit.xcenter.readback.value))
@@ -79,7 +77,7 @@ def changeSlits(slitArray, msSlit, mirrPos, slitVal, msVal):
         
         if slit.ycenter.readback.value < 0.1 or slit.ycenter.readback.value > -0.1:
             
-            yield from mv(slit.ywidth.setpoint.put(value=slitVal))
+            yield from mv(slit.ywidth.setpoint, slitVal)
 
             if slit.ycenter.readback.value > 0.1 or slit.ycenter.readback.value < -0.1:
                 raise ValueError('The yCenter of the slits %s is not equal to 0 AFTER changing the width. It is %s') % (slit, str(slit.ycenter.readback.value))
@@ -92,7 +90,7 @@ def changeSlits(slitArray, msSlit, mirrPos, slitVal, msVal):
 
     if msSlit.xcenter.readback.value < 0.1 or msSlit.xcenter.readback.value > -0.1:
     
-        yield from mv(msSlit.xwidth.setpoint.put(value=msVal))
+        yield from mv(msSlit.xwidth.setpoint, msVal)
 
         if msSlit.xcenter.readback.value > 0.1 or msSlit.xcenter.readback.value < -0.1:
             raise ValueError('The xCenter of the slits %s is not equal to 0 AFTER changing the width. It is %s') % (msSlit, str(msSlit.xcenter.readback.value))
@@ -104,7 +102,7 @@ def changeSlits(slitArray, msSlit, mirrPos, slitVal, msVal):
         
     if slit.ycenter.readback.value < 0.1 or slit.ycenter.readback.value > -0.1:
             
-        yield from mv(slit.ywidth.setpoint.put(value=slitVal))
+        yield from mv(slit.ywidth.setpoint, msVal)
 
         if slit.ycenter.readback.value > 0.1 or slit.ycenter.readback.value < -0.1:
             raise ValueError('The yCenter of the slits %s is not equal to 0 AFTER changing the width. It is %s') % (msSlit, str(msSlit.ycenter.readback.value))
