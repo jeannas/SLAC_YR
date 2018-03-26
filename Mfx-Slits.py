@@ -3,6 +3,7 @@ from ophyd import EpicsSignal, EpicsSignalRO
 from pcdsdevices import epicsmotor, Slits
 from bluesky.plan_stubs import *
 import sys
+import numpy as np
 
 
 RE = RunEngine({})
@@ -41,76 +42,98 @@ def changeSlits(slitArray, msSlit, mirrPos, slitVal, msVal):
 
     slitArray: [Slits]
         The array is defined above. The instantiated slits to be moved
-    
+        Array has already been instantiated
+        input = slitArray
+
     msSlit: Slit
         The DG2 Midstream slit requires a different in-value and was separated
         from the slitArray
+
+        input = dg2SlitsMS
     
     mirrPos: 0 or 1
         This value will determine the position of the mirror. 0 indicates the mirror
         will be in the 'OUT' position and 1 will place the mirror in the 'IN'
         position
-    
+ 
     slitVal: inVal or outVal
         Depending on the position of the mirror, the values of the slits will also
-        be in either an IN or OUT position
+        be in either an IN or OUT position. Both input options have already been
+        instantiated
     
     msVal: inValMS, outValMS
         Corresponds directly to the values chosen for the mirror position and the 
-        slitVal variable. 
+        slitVal variable. Both input options have already been instantiated. 
     """
 
     yield from abs_set(refLaser.put(value=mirrPos))
     
     for slit in slitArray:
-        if slit.xcenter.readback.value < 0.1 or slit.xcenter.readback.value > -0.1:
-            
-            yield from mv(slit.xwidth.setpoint, slitVal)
 
-            if slit.xcenter.readback.value > 0.1 or slit.xcenter.readback.value < -0.1:
-                raise ValueError('The xCenter of the slits %s is not equal to 0 AFTER changing the width. It is %s') % (slit, str(slit.xcenter.readback.value))
+        ogSlitXCenter = slit.xcenter.readback.value
+        ogSlitYCenter = slit.ycenter.readback.value
+
+        rangeXCenter = np.linspace((ogSlitXCenter - 0.005), (ogSlitXCenter + 0.005))
+        rangeYCenter = np.linspace((ogSlitYCenter - 0.005), (ogSlitYCenter + 0.005))
+
+        if slit.xcenter.readback.value not in rangeXCenter:
+
+            raise ValueError("The position of the %s XCenter has signficantly changed since being instantiated. The current position is %s") % (slit, str(slit.xcenter.readback.value))
+            return
+            
+        else:
+            print("Moving slits to inputted location")
+            yield from mv(slit.xwidth,setpoint, slitVal)
+       
+           if slit.xcenter.readback.value not in rangeXCenter:
+               print("Changing %s XWidth has significantly changed %s XCenter. Current %s X Center slit position is %s") % (slit, slit,  str(slit.xcenter.readback.value))
+               yield from mv(slit.xcenter.setpoint, ogSlitXCenter)
+
+ 
+        if slit.ycenter.readback.value not in rangeYCenter:
+            
+                raise ValueError("The position of the %s YCenter has signficantly changed since being instantiated. The current position is %s") % (slit, str(slit.ycenter.readback.value))))
                 return
 
         else:
-            raise ValueError('The xCenter of the slits %s is not equal to 0 BEFORE changing the width. It is %s') % (slit, str(slit.xcenter.readback.value))
-            return
-        
-        if slit.ycenter.readback.value < 0.1 or slit.ycenter.readback.value > -0.1:
-            
+            print("Moving slits to inputted location")
             yield from mv(slit.ywidth.setpoint, slitVal)
 
-            if slit.ycenter.readback.value > 0.1 or slit.ycenter.readback.value < -0.1:
-                raise ValueError('The yCenter of the slits %s is not equal to 0 AFTER changing the width. It is %s') % (slit, str(slit.ycenter.readback.value))
-                return
 
-        else:
-            raise ValueError('The yCenter of the slits %s is not equal to 0 BEFORE changing the width. It is %s') % (slit, str(slit.ycenter.readback.value))
-            return 
+           if slit.Ycenter.readback.value not in rangeYCenter:
+               print("Changing %s YWidth has significantly changed %s YCenter. Current %s Y Center slit position is %s") % (slit, slit,  str(slit.ycenter.readback.value))
+               yield from mv(slit.ycenter.setpoint, ogSlitYCenter)
 
 
-    if msSlit.xcenter.readback.value < 0.1 or msSlit.xcenter.readback.value > -0.1:
-    
+    msSlitXCenter = msSlit.xcenter.readback.value
+    msSlitYCenter = msSlit.ycenter.readback.value
+
+    rangeMSXCent = np.linspace((msSlitXCenter - 0.005), (msSlitXCenter + 0.005))
+    rangeMSYCent = np.linspace((msSlitYCenter - 0.005), (msSlitYCenter + 0.005))
+
+    if msSlit.xcenter.readback.value not in rangeMSXCent:
+
+        raise ValueError("The position of the %s xCenter has significantly changed since being instantiated. The current position is %s") % (msSlit, str(msSlit.xcenter.readback.value))
+        return
+  
+    else:
+        print("Moving %s to inputted location") % (msSlit)
         yield from mv(msSlit.xwidth.setpoint, msVal)
 
-        if msSlit.xcenter.readback.value > 0.1 or msSlit.xcenter.readback.value < -0.1:
-            raise ValueError('The xCenter of the slits %s is not equal to 0 AFTER changing the width. It is %s') % (msSlit, str(msSlit.xcenter.readback.value))
-            return
-
-    else:
-        raise ValueError('The xCenter of the slits %s is not equal to 0 BEFORE changing the width. It is %s') % (msSlit, str(msSlit.xcenter.readback.value))
-        return
+        if msSlit.xcenter.readback.value not in rangeMSXCent:
+            print("Changing %s XWidth has significantly changed %s XCenter. Current %s X Center slit position is %s") % (msSlit, msSlit, str(msSlit.xcenter.readback.value))            
+            yield from mv(msSlit.xcenter.setpoint, msSlitXCenter)
         
-    if slit.ycenter.readback.value < 0.1 or slit.ycenter.readback.value > -0.1:
-            
-        yield from mv(slit.ywidth.setpoint, msVal)
-
-        if slit.ycenter.readback.value > 0.1 or slit.ycenter.readback.value < -0.1:
-            raise ValueError('The yCenter of the slits %s is not equal to 0 AFTER changing the width. It is %s') % (msSlit, str(msSlit.ycenter.readback.value))
-            return
+    if msSlit.ycenter.readback.value not in rangeMSYCent:
+        raise ValueError("The position of the %s xCenter has significantly changed since being instantiated. The current position is %s") % (msSlit, str(msSlit.ycenter.readback.value)) 
+        return
 
     else:
-        raise ValueError('The yCenter of the slits %s is not equal to 0 BEFORE changing the width. It is %s') % (msSlit, str(msSlit.ycenter.readback.value))
-        return 
+        yield from mv(msSlit.ywidth.msVal)
+
+        if msSlit.ycenter.readback.value not in rangeMSYCent:
+            print("Changing %s YWidth has significantly changed %s YCenter. Current %s Y Center slit position is %s") % (msSlit, msSlit, str(msSlit.ycenter.readback.value))  
+            yield from mv(msSlit.ycenter.setpoint, msSlitYCenter)
 
 #if __name__ -- '__main__':
 
