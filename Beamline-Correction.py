@@ -73,33 +73,26 @@ respective bluesky plans
 """
 
 try:
-    stand = sys.argv[1]
-    standDictionary = _stand_detectors[stand]
+
     nameArray = []
     pvArray = []
     kb1Positions = []
     kb2Positions = []
     zeroPositions = []
 
-    for key, value in standDictionary.items():
-        nameArray.append(key)
-        pv = value['pv']
-        kb1 = value['kb1']
-        kb2 = value['kb2']
-        zero = value['straight']
-        pvArray.append(pv)
-        kb1Positions.append(kb1)
-        kb2Positions.append(kb2)
-        zeroPositions.append(zero)
-
-    motor_Ax = epicsmotor.EpicsMotor(pvArray[0], name = 'motor_Ax')
-    motor_Ay = epicsmotor.EpicsMotor(pvArray[1], name = 'motor_Ay')
-    motor_By = epicsmotor.EpicsMotor(pvArray[2], name = 'motor_By')
-    motor_Cx = epicsmotor.EpicsMotor(pvArray[3], name = 'motor_Cx')
-    motor_Cy = epicsmotor.EpicsMotor(pvArray[4], name = 'motor_Cy')
-
-    motorArray = [motor_Ax, motor_Ay, motor_By, motor_Cx, motor_Cy]
-
+    for stand in _stands:
+        standDictionary = _stand_detectors[stand]
+        for key, value in standDictionary.items():
+            nameArray.append(key)
+            
+            pv = value['pv']
+            kb1 = value['kb1']
+            kb2 = value['kb2']
+            zero = value['straight']
+            pvArray.append(pv)
+            kb1Positions.append(kb1)
+            kb2Positions.append(kb2)
+            zeroPositions.append(zero)
 
 except IndexError:
     print("Your choices are 'stand1MS', 'standDG2', 'standDG3', 'standDG4'")
@@ -108,8 +101,80 @@ except KeyError:
     print("Your choices are 'stand1MS', 'standDG2', 'standDG3', 'standDG4'")
 
 
-RE = RunEngine({})
+#SPLIT LISTS TO RESPECTIVE STAND (5 total motors/stand)
 
+
+def splitLists(array, size):
+    x = [array[i:i+size] for i in range(0, len(array), size)]
+    return x
+
+pvSplit = splitLists(array=pvArray, size=5)
+kb1Split = splitLists(array=kb1Positions, size=5)
+kb2Split = splitLists(array=kb2Positions, size=5)
+zeroSplit = splitLists(array=zeroPositions, size=5)
+
+
+#Instantiate Motors by stand
+
+DG2_Ax = epicsmotor.EpicsMotor(pvSplit[0][0], name = 'DG2_Ax')
+DG2_Ay = epicsmotor.EpicsMotor(pvSplit[0][1], name = 'DG2_Ay')
+DG2_By = epicsmotor.EpicsMotor(pvSplit[0][2], name = 'DG2_By')
+DG2_Cx = epicsmotor.EpicsMotor(pvSplit[0][3], name = 'DG2_Cx')
+DG2_Cy = epicsmotor.EpicsMotor(pvSplit[0][4], name = 'DG2_Cy')
+
+DG2Array = [DG2_Ax, DG2_Ay, DG2_By, DG2_Cx, DG2_Cy]
+DG2_kb1 = kb1Split[0]
+DG2_kb2 = kb2Split[0]
+DG2_zero = zeroSplit[0]
+
+MS1_Ax = epicsmotor.EpicsMotor(pvSplit[1][0], name = 'MS1_Ax')
+MS1_Ay = epicsmotor.EpicsMotor(pvSplit[1][1], name = 'MS1_Ay')
+MS1_By = epicsmotor.EpicsMotor(pvSplit[1][2], name = 'MS1_By')
+MS1_Cx = epicsmotor.EpicsMotor(pvSplit[1][3], name = 'MS1_Cx')
+MS1_Cy = epicsmotor.EpicsMotor(pvSplit[1][4], name = 'MS1_Cy')
+
+MS1Array = [MS1_Ax, MS1_Ay, MS1_By, MS1_Cx, MS1_Cy]
+MS1_kb1 = kb1Split[1]
+MS1_kb2 = kb2Split[1]
+MS1_zero = zeroSplit[1]
+
+DG3_Ax = epicsmotor.EpicsMotor(pvSplit[2][0], name = 'DG3_Ax')
+DG3_Ay = epicsmotor.EpicsMotor(pvSplit[2][1], name = 'DG3_Ay')
+DG3_By = epicsmotor.EpicsMotor(pvSplit[2][2], name = 'DG3_By')
+DG3_Cx = epicsmotor.EpicsMotor(pvSplit[2][3], name = 'DG3_Cx')
+DG3_Cy = epicsmotor.EpicsMotor(pvSplit[2][4], name = 'DG3_Cy')
+
+DG3Array = [DG3_Ax, DG3_Ay, DG3_By, DG3_Cx, DG3_Cy]
+DG3_kb1 = kb1Split[2]
+DG3_kb2 = kb2Split[2]
+DG3_zero = zeroSplit[2]
+
+DG4_Ax = epicsmotor.EpicsMotor(pvSplit[3][0], name = 'DG4_Ax')
+DG4_Ay = epicsmotor.EpicsMotor(pvSplit[3][1], name = 'DG4_Ay')
+DG4_By = epicsmotor.EpicsMotor(pvSplit[3][2], name = 'DG4_By')
+DG4_Cx = epicsmotor.EpicsMotor(pvSplit[3][3], name = 'DG4_Cx')
+DG4_Cy = epicsmotor.EpicsMotor(pvSplit[3][4], name = 'DG4_Cy')
+
+DG4Array = [DG4_Ax, DG4_Ay, DG4_By, DG4_Cx, DG4_Cy]
+DG4_kb1 = kb1Split[3]
+DG4_kb2 = kb2Split[3]
+DG4_zero = zeroSplit[3]
+
+#VARIABLES FOR DG2, MS1, DG3
+realStand = DG2Array + MS1Array + DG3Array
+
+kb1All = DG2_kb1 + MS1_kb1 + DG3_kb1
+kb2All = DG2_kb2 + MS1_kb2 + DG3_kb2
+zeroAll = DG2_zero + MS1_zero + DG3_zero
+
+#VARIABLES FOR DG4 (Practice)
+practiceStand = DG4Array
+kb1DG4 = DG4_kb1
+kb2DG4 = DG4_kb2
+zeroDG4 = DG4_zero
+
+
+RE = RunEngine({})
 
 def setConfig(motorArray, config, nSteps, tSteps, tWait):
 
@@ -121,21 +186,31 @@ def setConfig(motorArray, config, nSteps, tSteps, tWait):
     Parameters
     ----------
 
-    motorArray: [EpicsMotors]
+    motorArray: [EpicsMotor]
         The instantiated motor objects that will be moved
+        For multiple stands, you can add motor Arrays together
+        i.e MS1Array + DG2Array + DG3Array
+
+        realStand = [DG2motors, MS1motors, DG3motors]
+        practiceStand = [DG4motors]
 
     nSteps: Int
         The number of total steps that the motors should take to reach
         position 0. All motors will reach 0 simultaneously
 
     config: [Float]
-        The user will select which configuration. The arrays with the 
-        kb1 and kb2 positions for each respective motor are initialized
-        at the start
+        The user will select which configuration. The arrays with positions
+        are already initialized. Main use is to simultaneously move 1MS,
+        DG2, DG3 at once. Practice will be used for DG4, and config choices
+        will be listed out.
 
-        kb1 Configuration = kb1Positions
-        kb2 Configurations = kb2Positions
-        straight Configuration = zeroPositions
+        kb1All - KB1 configuration with DG2, MS1, DG3 (in that order)
+        kb2All - KB2 configuration with DG2, MS1, DG3
+        zeroAll - Zero configuratio with DG2, MS1, DG3
+        kb1DG4 - KB1 configuration for DG4
+        kb2DG4 - KB2 configuration for DG4
+        zeroDG4 - Zero configuration for DG4 
+          
 
     tSteps: Int
         This number will determine the velocity. The total distance/step
@@ -154,6 +229,8 @@ def setConfig(motorArray, config, nSteps, tSteps, tWait):
     distTravel = []
     tweekVals = []
     velocityVals = []
+
+    nMotors = len(motorArray)
 
     #Figure out position of motors first
     for motor in motorArray:
@@ -184,12 +261,15 @@ def setConfig(motorArray, config, nSteps, tSteps, tWait):
     #All motors will move in calculated steps & speeds to 0, while also reaching 0 simultaneously with tSteps being the time between each step
 
     for _ in nSteps:
-        yield from mv(motorArray[0],tweekVals[0],motorArray[1],tweekVals[1],motorArray[2],tweekVals[2], motorArray[3],tweekVals[3], motorArray[4],tweekVals[4])
+
+        #FOR DG4 PRACTICE (5 MOTORS)
+    #    yield from mv(motorArray[0],tweekVals[0],motorArray[1],tweekVals[1],motorArray[2],tweekVals[2], motorArray[3],tweekVals[3], motorArray[4],tweekVals[4])
+
+        #FOR DG2 + MS1 + DG3 (15 MOTORS)
+        yield from mv(motorArray[0],tweekVals[0],motorArray[1],tweekVals[1],motorArray[2],tweekVals[2], motorArray[3],tweekVals[3], motorArray[4],tweekVals[4], motorArray[5], tweekVals[5],motorArray[6],tweekVals[6],motorArray[7],tweekVals[7],motorArray[8],tweekVals[8], motorArray[9],tweekVals[9], motorArray[10],tweekVals[10],motorArray[11],tweekVals[11],motorArray[12],tweekVals[12], motorArray[13],tweekVals[13], motorArray[14], tweekVals[14])
+
 
         yield from sleep(tWait)
-
-
-
 
 
 #if __name__ == '__main__':
