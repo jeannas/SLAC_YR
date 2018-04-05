@@ -234,6 +234,9 @@ def setConfig(motorArray, config, nSteps, tSteps, tWait):
 
     #Figure out position of motors first
     for motor in motorArray:
+        #Enables all motors in array with new component
+        motor.enabled(enabled=False)
+
         startPos = motor.user_readback.value
         startPosArray.append(startPos)
 
@@ -260,7 +263,7 @@ def setConfig(motorArray, config, nSteps, tSteps, tWait):
 
     #All motors will move in calculated steps & speeds to 0, while also reaching 0 simultaneously with tSteps being the time between each step
 
-    for _ in nSteps:
+    for step in nSteps:
 
         #FOR DG4 PRACTICE (5 MOTORS)
         yield from mv(motorArray[0],tweekVals[0],motorArray[1],tweekVals[1],motorArray[2],tweekVals[2], motorArray[3],tweekVals[3], motorArray[4],tweekVals[4])
@@ -271,6 +274,23 @@ def setConfig(motorArray, config, nSteps, tSteps, tWait):
 
         yield from sleep(tWait)
 
+        for motor in motorArray:
+            for tweek in tweekVals:
+                for start in startPosArray:
+                    theorTravl = step * tweek
+                    mvUp = start + theorTravl
+                    mvDown = start - theorTravel
+                    if motor.direction_of_travel.value == 0:
+                        if motor.user_readback.value not in range((mvDown * .095),(mvDown * 1.05)):
+                            motor.motor_stop.put(value=1)
+                            motor.enable(enable=0)
+                            print("The %s motor has been disabled. The expected position was %s and the current position is %s") % (motor, str(mvDown),str(motor.user_readback.value))
+
+                    elif motor.direction_of_travel.value == 1:
+                        if motor.user_readback.value not in range((mvUp * .095),(mvUp * 1.05)):
+                            motor.motor_stop.put(value=1)
+                            motor.enable(enable=0)
+                            print("The %s motor has been disabled. The expected position was %s and the current position is %s") % (motor, str(mvDown),str(motor.user_readback.value))
 
 if __name__ == '__main__':
 
