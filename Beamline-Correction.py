@@ -1,3 +1,4 @@
+#import epics_motor
 from pcdsdevices import epics_motor
 from bluesky.plan_stubs import *
 from bluesky import RunEngine
@@ -115,45 +116,48 @@ zeroSplit = splitLists(array=zeroPositions, size=5)
 
 
 #Instantiate Motors by stand
-
-DG2_Ax = epics_motor.EpicsMotor(pvSplit[0][0], name = 'DG2_Ax')
-DG2_Ay = epics_motor.EpicsMotor(pvSplit[0][1], name = 'DG2_Ay')
-DG2_By = epics_motor.EpicsMotor(pvSplit[0][2], name = 'DG2_By')
-DG2_Cx = epics_motor.EpicsMotor(pvSplit[0][3], name = 'DG2_Cx')
-DG2_Cy = epics_motor.EpicsMotor(pvSplit[0][4], name = 'DG2_Cy')
+print("Instantiating motors DG2")
+DG2_Ax = epics_motor.IMS(pvSplit[0][0], name = 'DG2_Ax')
+DG2_Ay = epics_motor.IMS(pvSplit[0][1], name = 'DG2_Ay')
+DG2_By = epics_motor.IMS(pvSplit[0][2], name = 'DG2_By')
+DG2_Cx = epics_motor.IMS(pvSplit[0][3], name = 'DG2_Cx')
+DG2_Cy = epics_motor.IMS(pvSplit[0][4], name = 'DG2_Cy')
 
 DG2Array = [DG2_Ax, DG2_Ay, DG2_By, DG2_Cx, DG2_Cy]
 DG2_kb1 = kb1Split[0]
 DG2_kb2 = kb2Split[0]
 DG2_zero = zeroSplit[0]
 
-MS1_Ax = epics_motor.EpicsMotor(pvSplit[1][0], name = 'MS1_Ax')
-MS1_Ay = epics_motor.EpicsMotor(pvSplit[1][1], name = 'MS1_Ay')
-MS1_By = epics_motor.EpicsMotor(pvSplit[1][2], name = 'MS1_By')
-MS1_Cx = epics_motor.EpicsMotor(pvSplit[1][3], name = 'MS1_Cx')
-MS1_Cy = epics_motor.EpicsMotor(pvSplit[1][4], name = 'MS1_Cy')
+print("inistant. MS1")
+MS1_Ax = epics_motor.IMS(pvSplit[1][0], name = 'MS1_Ax')
+MS1_Ay = epics_motor.IMS(pvSplit[1][1], name = 'MS1_Ay')
+MS1_By = epics_motor.IMS(pvSplit[1][2], name = 'MS1_By')
+MS1_Cx = epics_motor.IMS(pvSplit[1][3], name = 'MS1_Cx')
+MS1_Cy = epics_motor.IMS(pvSplit[1][4], name = 'MS1_Cy')
 
 MS1Array = [MS1_Ax, MS1_Ay, MS1_By, MS1_Cx, MS1_Cy]
 MS1_kb1 = kb1Split[1]
 MS1_kb2 = kb2Split[1]
 MS1_zero = zeroSplit[1]
 
-DG3_Ax = epics_motor.EpicsMotor(pvSplit[2][0], name = 'DG3_Ax')
-DG3_Ay = epics_motor.EpicsMotor(pvSplit[2][1], name = 'DG3_Ay')
-DG3_By = epics_motor.EpicsMotor(pvSplit[2][2], name = 'DG3_By')
-DG3_Cx = epics_motor.EpicsMotor(pvSplit[2][3], name = 'DG3_Cx')
-DG3_Cy = epics_motor.EpicsMotor(pvSplit[2][4], name = 'DG3_Cy')
+print("DG3 stands")
+DG3_Ax = epics_motor.IMS(pvSplit[2][0], name = 'DG3_Ax')
+DG3_Ay = epics_motor.IMS(pvSplit[2][1], name = 'DG3_Ay')
+DG3_By = epics_motor.IMS(pvSplit[2][2], name = 'DG3_By')
+DG3_Cx = epics_motor.IMS(pvSplit[2][3], name = 'DG3_Cx')
+DG3_Cy = epics_motor.IMS(pvSplit[2][4], name = 'DG3_Cy')
 
 DG3Array = [DG3_Ax, DG3_Ay, DG3_By, DG3_Cx, DG3_Cy]
 DG3_kb1 = kb1Split[2]
 DG3_kb2 = kb2Split[2]
 DG3_zero = zeroSplit[2]
 
-DG4_Ax = epics_motor.EpicsMotor(pvSplit[3][0], name = 'DG4_Ax')
-DG4_Ay = epics_motor.EpicsMotor(pvSplit[3][1], name = 'DG4_Ay')
-DG4_By = epics_motor.EpicsMotor(pvSplit[3][2], name = 'DG4_By')
-DG4_Cx = epics_motor.EpicsMotor(pvSplit[3][3], name = 'DG4_Cx')
-DG4_Cy = epics_motor.EpicsMotor(pvSplit[3][4], name = 'DG4_Cy')
+print("DG4 stands")
+DG4_Ax = epics_motor.IMS(pvSplit[3][0], name = 'DG4_Ax')
+DG4_Ay = epics_motor.IMS(pvSplit[3][1], name = 'DG4_Ay')
+DG4_By = epics_motor.IMS(pvSplit[3][2], name = 'DG4_By')
+DG4_Cx = epics_motor.IMS(pvSplit[3][3], name = 'DG4_Cx')
+DG4_Cy = epics_motor.IMS(pvSplit[3][4], name = 'DG4_Cy')
 
 DG4Array = [DG4_Ax, DG4_Ay, DG4_By, DG4_Cx, DG4_Cy]
 DG4_kb1 = kb1Split[3]
@@ -229,68 +233,95 @@ def setConfig(motorArray, config, nSteps, tSteps, tWait):
     distTravel = []
     tweekVals = []
     velocityVals = []
+    steps = range(1, nSteps + 1)
 
     nMotors = len(motorArray)
+ 
+    print("Starting now")
 
     #Figure out position of motors first
     for motor in motorArray:
+        print(motor)
         #Enables all motors in array with new component
-        motor.enabled(enabled=False)
+        motor.enable()
+        print("motor enabled")
 
         startPos = motor.user_readback.value
         startPosArray.append(startPos)
 
     #Calculate distance to travel for each motor, and set velocity based on distance so motors will reach at position 0 at same time
-    for start in startPosArray:
-        for final in config:
-            distance = final - start
-            distTravel.append(distance)
+    #for start in startPosArray:
+    #    for final in config:
+    #        distance = final - start
+    #        distTravel.append(distance)
+    #        print("Distances")
+    #        print(distance)
+
+    for start, final in zip(startPosArray, config):
+        distance = final - start
+        distTravel.append(distance)
 
     for dist in distTravel:
         tweek = dist/nSteps
         tweekVals.append(tweek)
 
-    for tweek in tweekVals:
-        velocity = tweek/tSteps
-        velocityVals.append(velocity)
+   # for tweek in tweekVals:
+   #     velocity = tweek/tSteps
+   #     velocityVals.append(velocity)
 
-    for motor in motorArray:
-        for veloc in velocityVals:
-            yield from abs_set(motor.velocity.put(value=veloc))
+    #    print("velocity")
+    #    print(velocity)
 
+   # for motor in motorArray:
+   #     for veloc in velocityVals:
+           # yield from abs_set(motor.velocity.put(value=veloc))
+   #         yield from mv(motor.velocity, veloc)
+   #         print("success with initial params")
 
     print("Moving all motors to selected Configuration")
 
     #All motors will move in calculated steps & speeds to 0, while also reaching 0 simultaneously with tSteps being the time between each step
 
-    for step in nSteps:
+    theorToTravel = []
+    for step in steps:
 
+        for tweek, start in zip(tweekVals, startPosArray):
+            trav = start + (step * tweek)
+            print(tweek)
+            print(theorToTravel)
+            theorToTravel.append(trav) 
+
+            print(len(theorToTravel))
+
+        yield from mv(motorArray[0], theorToTravel[0], motorArray[1], theorToTravel[1], motorArray[2], theorToTravel[2], motorArray[3], theorToTravel[3], motorArray[4], theorToTravel[4])
+
+        theorToTravel = [] 
         #FOR DG4 PRACTICE (5 MOTORS)
-        yield from mv(motorArray[0],tweekVals[0],motorArray[1],tweekVals[1],motorArray[2],tweekVals[2], motorArray[3],tweekVals[3], motorArray[4],tweekVals[4])
+       # yield from mv(motorArray[0],tweekVals[0],motorArray[1],tweekVals[1],motorArray[2],tweekVals[2], motorArray[3],tweekVals[3], motorArray[4],tweekVals[4])
 
         #FOR DG2 + MS1 + DG3 (15 MOTORS)
        # yield from mv(motorArray[0],tweekVals[0],motorArray[1],tweekVals[1],motorArray[2],tweekVals[2], motorArray[3],tweekVals[3], motorArray[4],tweekVals[4], motorArray[5], tweekVals[5],motorArray[6],tweekVals[6],motorArray[7],tweekVals[7],motorArray[8],tweekVals[8], motorArray[9],tweekVals[9], motorArray[10],tweekVals[10],motorArray[11],tweekVals[11],motorArray[12],tweekVals[12], motorArray[13],tweekVals[13], motorArray[14], tweekVals[14])
 
 
-        yield from sleep(tWait)
+        #yield from sleep(tWait)
 
-        for motor in motorArray:
-            for tweek in tweekVals:
-                for start in startPosArray:
-                    theorTravl = step * tweek
-                    mvUp = start + theorTravl
-                    mvDown = start - theorTravel
-                    if motor.direction_of_travel.value == 0:
-                        if motor.user_readback.value not in range((mvDown * .095),(mvDown * 1.05)):
-                            motor.motor_stop.put(value=1)
-                            motor.enable(enable=0)
-                            print("The %s motor has been disabled. The expected position was %s and the current position is %s") % (motor, str(mvDown),str(motor.user_readback.value))
+ #   for motor in motorArray:
+  #          for tweek in tweekVals:
+  #              for start in startPosArray:
+  #                  theorTravl = step * tweek
+  #                  mvUp = start + theorTravl
+  #                  mvDown = start - theorTravel
+  #                  if motor.direction_of_travel.value == 0:
+  #                      if motor.user_readback.value not in range((mvDown * .095),(mvDown * 1.05)):
+  #                          motor.motor_stop.put(value=1)
+  #                          motor.enable(enable=0)
+   #                         print("The %s motor has been disabled. The expected position was %s and the current position is %s") % (motor, str(mvDown),str(motor.user_readback.value))
 
-                    elif motor.direction_of_travel.value == 1:
-                        if motor.user_readback.value not in range((mvUp * .095),(mvUp * 1.05)):
-                            motor.motor_stop.put(value=1)
-                            motor.enable(enable=0)
-                            print("The %s motor has been disabled. The expected position was %s and the current position is %s") % (motor, str(mvDown),str(motor.user_readback.value))
+     #               elif motor.direction_of_travel.value == 1:
+    #                    if motor.user_readback.value not in range((mvUp * .095),(mvUp * 1.05)):
+       #                     motor.motor_stop.put(value=1)
+      #                      motor.disable()
+        #                    print("The %s motor has been disabled. The expected position was %s and the current position is %s") % (motor, str(mvDown),str(motor.user_readback.value))
 
 if __name__ == '__main__':
 
