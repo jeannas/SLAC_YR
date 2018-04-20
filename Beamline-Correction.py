@@ -235,6 +235,7 @@ def setConfig(motorArray, config, nSteps, tSteps, tWait):
  
     print("Starting now")
 
+
     #Figure out position of motors first
     for motor in motorArray:
         #Enables all motors in array with new component
@@ -259,71 +260,85 @@ def setConfig(motorArray, config, nSteps, tSteps, tWait):
         velocityVals.append(velocity)
 
 #Set this constant
-    for motor, velocity in zip(motor, velocityVals):
+    for motor, velocity in zip(motorArray, velocityVals):
+        print(velocity)
         yield from abs_set(motor.velocity, velocity)
 
 #Set low and high before starting, giving 2 step cushion at start, will get more strict
 
-    setLimits(motorArray, tweekVals, distTravel, step=1) 
+#    setLimits(motorArray, tweekVals, distTravel, step=1) 
     print("Moving all motors to selected Configuration")
+
+    for motor, distance, tweek in zip(motorArray, distTravel, tweekVals):
+        if distance < 0:
+            yield from abs_set(motor.low_soft_limit, (motor.user_readback.value - (0.5 + (1 * tweek))))
+            yield from abs_set(motor.high_soft_limit, (motor.user_readback.value + (0.01 + (1 * tweek))))
+            print("Limit set")
+        else:
+            yield from abs_set(motor.low_soft_limit, (motor.user_readback.value - (0.01 + (1 * tweek))))
+            yield from abs_set(motor.high_soft_limit, (motor.user_readback.value + (0.5 + (1 * tweek))))
+            print("Limit set")
 
     #All motors will move in calculated steps & speeds to 0, while also reaching 0 simultaneously with tSteps being the time between each step
 
-    moving_to = []
 
     for step in steps:
+
+        moving_to = []
 
         for tweek, start, dist in zip(tweekVals, startPosArray, distTravel):
             if dist < 0:
                 trav = start - (tweek * step)
             else:
                 trav = start + (tweek * step)
+            print(trav)
             moving_to.append(trav) 
-            
+        for motor in motorArray:
+            if motor.disabled.value == 1:
+                motor.enable()
         #DG4 ONLY
         yield from mv(motorArray[0], moving_to[0], motorArray[1], moving_to[1], motorArray[2], moving_to[2], motorArray[3], moving_to[3], motorArray[4], moving_to[4])
 
         #Need to reset the low/high limits based on direction and step
-        setLimits(motorArray, tweekVals, distTravel, step)
-        checkPosition(motorArray, tweekVals, startPosArray, distTravel, step)
+        for motor, distance, tweek in zip(motorArray, distTravel, tweekVals):
+            if distance < 0:
+                yield from abs_set(motor.low_soft_limit, (motor.user_readback.value - (0.5 + (step * tweek))))
+                yield from abs_set(motor.high_soft_limit, (motor.user_readback.value + (0.001 * (step * tweek))))
+                print("Limit set")
+            else:
+                yield from abs_set(motor.low_soft_limit, (motor.user_readback.value - (0.001 * (step * tweek))))
+                yield from abs_set(motor.high_soft_limit, (motor.user_readback.value + (0.5 + (step * tweek))))
+                print("Limit set")
+
+        for motor, tweek, start, distance in zip(motorArray, tweekVals, startPosArray, distTravel):
+            if distance < 0:
+                theorPos = start - (step * tweek)
+                print(theorPos)
+                print((theorPos - 0.2))
+                print((theorPos + 0.2))
+                if (theorPos - 0.2) >= motor.user_readback.value or (theorPos + 0.2) <= motor.user_readback.value:
+               # if motor.user_readback.value not in range(int(theorPos - 0.2), int(theorPos + 0.2)):
+                   # yield from abs_set(motor.motor_stop, 1)
+                    motor.disable()
+                   # print("The %s motor has been disabled. The expected position was %.6f and the current position is %.6f") % (motor, theorPos, motor.user_readback.value)
+                else:
+                    pass
+            else:
+                theorPos = start + (step * tweek)
+                print(range(int(theorPos - 0.2), int(theorPos + 0.2)))
+                if (theorPos - 0.2) >=  motor.user_readback.value or (theorPos + 0.2) <= motor.user_readback.value:
+               # if motor.user_readback.value not in range(int(theorPos - 0.2), int(theorPos + 0.2)):
+                   # yield from abs_set(motor.motor_stop, 1)
+                    motor.disable()
+                   # print("The %s motor has been disabled. The expected position was %s and the current position is %s") % (motor, str(theorPos),str(motor.user_readback.value))
+                else:
+                    pass
 
         #FOR DG2 + MS1 + DG3 (15 MOTORS)
        # yield from mv(motorArray[0],tweekVals[0],motorArray[1],tweekVals[1],motorArray[2],tweekVals[2], motorArray[3],tweekVals[3], motorArray[4],tweekVals[4], motorArray[5], tweekVals[5],motorArray[6],tweekVals[6],motorArray[7],tweekVals[7],motorArray[8],tweekVals[8], motorArray[9],tweekVals[9], motorArray[10],tweekVals[10],motorArray[11],tweekVals[11],motorArray[12],tweekVals[12], motorArray[13],tweekVals[13], motorArray[14], tweekVals[14])
-
         yield from sleep(tWait)
 
-#Convenience functions
-
-def setLimits(motorArray, tweekVals, distTravel, step):
-
-    for motor, distance, tweek in zip(motorArray, distTravel, tweekVals):
-        if distance < 0:
-            yield from abs_set(motor.low_soft_limit, (motor.user_readback.value - (0.5 + (step * tweek))))
-            yield from abs_set(motor.high_soft_limit, (motor.user_readback.value + (0.01 + (step * tweek))))
-
-        else:
-            yield from abs_set(motor.low_soft_limit, (motor.user_readback.value - (0.01 + (step * tweek))))
-            yield from abs_set(motor.high_soft_limit, (motor.user_readback.value + (0.5 + (step * tweek))))
-
-def checkPosition(motorArray, tweekVals, startPosArray, distTravel, step):
-
-    for motor, tweek, start, distance in zip(motorArray, tweekVals, startPosArray, distTravel):
-        if distance < 0:
-             theorPos = start - (step * tweek)
-             if motor.user_readback.value not in range(theorPos - 0.5, theorPos + 0.5):
-                 yield from abs_set(motor.motor_stop, True)
-                 motor.disable()
-                 print("The %s motor has been disabled. The expected position was %s and the current position is %s") % (motor, str(theorPos),str(motor.user_readback.value))
-             else:
-                 pass
-        else:
-            theorPos = start + (step * tweek)
-            if motor.user_readback.value not in range(theorPos - 0.5, theorPos + 0.5):
-                yield from abs_set(motor.motor_stop, True)
-                motor.disable()
-                print("The %s motor has been disabled. The expected position was %s and the current position is %s") % (motor, str(theorPos),str(motor.user_readback.value))
-       
 
 if __name__ == '__main__':
 
-    RE(setConfig(motorArray=practiceStand, nSteps=100, config=kb2DG4, tSteps=10, tWait=10))
+    RE(setConfig(motorArray=practiceStand, nSteps=25, config=zeroDG4, tSteps=10, tWait=5))
