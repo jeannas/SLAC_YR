@@ -14,32 +14,34 @@ tt_edge = psana.Detector('CXI:TTSPEC:FLTPOS', ds.env())
 tt_fwhm = psana.Detector('CXI:TTSPEC:FLTPOSFWHM', ds.env())
 tt_famp = psana.Detector('CXI:TTSPEC:AMPL', ds.env())
 
-delayArray = []
-edgeArray = []
-fwhmArray = []
-ampArray = []
+delay_array = []
+edge_array = []
+fwhm_array = []
+amp_array = []
 
 for evt in ds.events():
-    delayArray.append(las_dly(evt))
-    edgeArray.append(tt_edge(evt))
-    fwhmArray.append(tt_fwhm(evt))
-    ampArray.append(tt_famp(evt))
+    delay_array.append(las_dly(evt))
+    edge_array.append(tt_edge(evt))
+    fwhm_array.append(tt_fwhm(evt))
+    amp_array.append(tt_famp(evt))
    
 #18500 is the cutoff I determined when it starts missing target
 
-edgeArray = np.array(edgeArray[0:18500])
-delayArray = np.array(delayArray[0:18500])
-fwhmArray = np.array(fwhmArray[0:18500])
-ampArray = np.array(ampArray[0:18500])
+edge_array = np.array(edge_array[0:18500])
+delay_array = np.array(delay_array[0:18500])
+fwhm_array = np.array(fwhm_array[0:18500])
+amp_array = np.array(amp_array[0:18500])
+acq_array = np.array(acq[0:18500])
 
 corrected = []
+match_acq = []
 
 a = -1.527864480143
 b =  0.003652900467
 c = -0.000001106143
 
 #Double check the events 
-for edge, lase, fwhm, amp in zip(edgeArray, delayArray, fwhmArray, ampArray):
+for edge, lase, fwhm, amp, acqi in zip(edge_array, delay_array, fwhm_array, amp_array, acq_array):
     if (fwhm > 250.0) or (fwhm < 50.0):
         continue
     if (amp < 0.02):
@@ -48,12 +50,22 @@ for edge, lase, fwhm, amp in zip(edgeArray, delayArray, fwhmArray, ampArray):
         tt_correction = (a + b*edge + c*edge**2)/1000
         y = lase + tt_correction
         corrected.append(y)
+        match_acq.append(acqi)
 
+corrected = np.array(corrected)
+match_acq = np.array(match_acq)
+#print(len(corrected))
+#print(len(match_acq))
 #The acq has the NAN values, so this needs to be done
 bad = np.isnan(acq)
+#bad = np.isnan(match_acq)
 nb = np.logical_not(bad)
-bins = np.unique(las).shape[0]
-h,b = np.histogram(las, bins=bins, weights=acq)
+#bins = np.unique(las).shape[0]
+bins = 15
+#THIS GETS ORIGINAL PLOT
+h,b = np.histogram(las[nb], bins=bins, weights=acq[nb])
+#h,b = np.histogram(corrected[nb], bins=bins, weights=match_acq[nb])
+
 
 plt.figure()
 plt.plot(b[:-1], h)
