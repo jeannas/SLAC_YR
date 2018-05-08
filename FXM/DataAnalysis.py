@@ -9,8 +9,9 @@ def accessData(run):
     ds = psana.MPIDataSource('exp=cxi02116:run=%d' % run)
     det = psana.Detector('DsaCsPad')
     gas_det = psana.Detector('FEEGasDetEnergy')
-    
+    phot_energy = psana.Detector('EBeam')    
 
+    photon_energies = []
     intensities = []
     pulse_energies = []
 
@@ -25,12 +26,18 @@ def accessData(run):
         else:
             pulse_energy_evt = 0
 
+        phot = phot_energy.get(evt)
+        if not (phot is None):
+            phot_energy_evt = phot.ebeamPhotonEnergy()    
+            photon_energies.append(phot_energy_evt)
+
     intensities = np.array(intensities)
     pulse_energies = np.array(pulse_energies)
+    photon_energies = np.array(photon_energies)
 
-    test = np.column_stack([intensities,pulse_energies])
-    print(test)
-    print(test.shape)
+    final = np.column_stack([intensities,pulse_energies, photon_energies])
+    print(final)
+    print(final.shape)
     
 
 accessData(run)
