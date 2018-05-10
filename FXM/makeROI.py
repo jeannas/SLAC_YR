@@ -12,17 +12,30 @@ def makeCenter():
     for nevent, evt in enumerate(ds.events()):
         
         #Figure out coordinates first
-        img = det.image(evt)
-        test = det.calib(evt)
+        img = np.array(det.image(evt))
+        test = np.array(det.calib(evt))
         #Y-coords, then X-coords when slciing
         approximate = img[750:950, 775:975]
         real = approximate[65:176, 42:154]
 
-    plt.imshow(approximate, interpolation=None)
-    plt.show()
+    print(img.shape)
+    print(test.shape)
 
-    plt.imshow(test, interpolation=None)
-    plt.show()
+    print(img)
+    print(test)
+
+    yo = np.reshape(test, (1451, 1745))
+    print(yo)
+
+
+    #plt.imshow(test, interpolation=None)
+    #plt.show()
+
+    
+
+
+    #plt.imshow(test, interpolation=None)
+    #plt.show()
 
 makeCenter()
 
