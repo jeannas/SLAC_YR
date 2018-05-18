@@ -1,12 +1,14 @@
 import psana
 import sys
 import numpy as np
+from matplotlib import pyplot as plt
+from decimal import Decimal
 
 run = int(sys.argv[-1])
 
 def accessData(run):
 
-    ds = psana.MPIDataSource('exp=cxi02116:run=%d' % run)
+    ds = psana.MPIDataSource('exp=cxilr7416:run=%d' % run)
     det = psana.Detector('DsaCsPad')
     gas_det = psana.Detector('FEEGasDetEnergy')
     phot_energy = psana.Detector('EBeam')    
@@ -36,8 +38,31 @@ def accessData(run):
     photon_energies = np.array(photon_energies)
 
     final = np.column_stack([intensities,pulse_energies, photon_energies])
-    print(final)
-    print(final.shape)
     
+    #Remove negative pulse energies
+    negative_index = []
+    for index, array in enumerate(final):
+        if array[1] < 0.5:
+            negative_index.append(index)
+        
+    final = np.delete(final, negative_index, axis=0)
 
-accessData(run)
+    #Calculate averages
+    pulse_sum = 0
+    intensity_sum = 0
+
+    for count, array in enumerate(final):
+        pulse_sum += array[1]
+        intensity_sum += array[0]
+
+    pulse_average = pulse_sum / float(len(final))
+    intensity_average = intensity_sum / float(len(final))
+
+    print("The average pulse energy for run %d is %.7f mJ" % (run, pulse_average))
+    print("The average summed intensity for run %d is %.3E ADU" % (run, Decimal(intensity_average)))
+
+if __name__ == '__main__':
+
+    run = int(sys.argv[-1])
+
+    accessData(run)
